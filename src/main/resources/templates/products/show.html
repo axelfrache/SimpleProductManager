@@ -9,6 +9,7 @@
 <div class="mt-3">
     <p><strong>Name:</strong> <span th:text="${product.name}"></span></p>
     <p><strong>Description:</strong> <span th:text="${product.description}"></span></p>
+    <p><strong>Category:</strong> <span th:text="${product.category != null ? product.category.name : 'None'}"></span></p>
     <p><strong>Price:</strong> <span th:text="${product.price}"></span></p>
     <a th:href="@{/products}" class="btn btn-secondary">Back to list</a>
 </div>
