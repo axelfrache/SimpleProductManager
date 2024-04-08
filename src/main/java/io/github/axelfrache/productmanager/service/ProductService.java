@@ -31,14 +31,9 @@ public class ProductService {
         return this.productRepository.findAll();
     }
 
-    public void update(Long id, Product product) {
-        Product existingProduct = this.productRepository.findById(id).orElse(null);
-        if (existingProduct == null) {
-            return;
+    public void update(Product product) {
+        if (product.getId() != null) {
+            this.productRepository.save(product);
         }
-        existingProduct.setName(product.getName());
-        existingProduct.setDescription(product.getDescription());
-        existingProduct.setPrice(product.getPrice());
-        this.productRepository.save(existingProduct);
     }
 }

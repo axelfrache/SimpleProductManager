@@ -1,29 +1,21 @@
 package io.github.axelfrache.productmanager.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.validation.constraints.NotBlank;
 
+import java.util.List;
 
-
-@Data
 @Entity
+@Data
 @NoArgsConstructor
-@AllArgsConstructor
-public class Product {
+public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
-    @NotBlank
     private String name;
-    private String description;
-    private Double price;
 
-    @ManyToOne(optional = true)
-    private Category category;
+    @OneToMany(mappedBy = "category")
+    private List<Product> products;
 }
-
