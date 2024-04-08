@@ -46,12 +46,11 @@ public class CategoryController {
 
     @PostMapping("/{id}")
     public String updateCategory(@PathVariable Long id, @ModelAttribute Category category) {
-        category.setId(id); // Assure que l'ID est défini
-        categoryService.save(category); // Utilise save pour mettre à jour
+        category.setId(id);
+        categoryService.save(category);
         return "redirect:/categories";
     }
 
-    // Changement pour utiliser @PostMapping pour la suppression
     @PostMapping("/{id}/delete")
     public String deleteCategory(@PathVariable Long id) {
         categoryService.deleteById(id);

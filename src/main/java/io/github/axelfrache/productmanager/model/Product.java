@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.NotBlank;
 
-
-
 @Data
 @Entity
 @NoArgsConstructor
@@ -26,4 +24,3 @@ public class Product {
     @ManyToOne(optional = true)
     private Category category;
 }
-
