@@ -2,6 +2,7 @@ package io.github.axelfrache.productmanager.service;
 
 import io.github.axelfrache.productmanager.model.Command;
 import io.github.axelfrache.productmanager.repository.CommandRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,7 @@ public class CommandService {
         return this.commandRepository.findById(id).orElse(null);
     }
 
+    @Transactional
     public void save(Command command) {
         this.commandRepository.save(command);
     }

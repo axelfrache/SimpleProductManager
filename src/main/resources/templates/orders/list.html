@@ -16,10 +16,10 @@
     </tr>
     </thead>
     <tbody>
-    <tr th:each="command : ${commands}">
+    <tr th:each="command : ${orders}"> <!-- Modification ici -->
         <td th:text="${command.id}"></td>
         <td th:text="${command.client.firstName + ' ' + command.client.lastName}"></td>
-        <td th:text="${command.totalPrice}"></td>
+        <td th:text="${#numbers.formatDecimal(command.totalPrice, 1, 'COMMA', 2, 'POINT')}"></td>
         <td>
             <a th:href="@{'/orders/' + ${command.id} + '/edit'}" class="btn btn-primary btn-sm">Edit</a>
             <form th:action="@{'/orders/' + ${command.id} + '/delete'}" method="post" style="display: inline;">
