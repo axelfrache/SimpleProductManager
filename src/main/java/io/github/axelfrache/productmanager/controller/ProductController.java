@@ -63,7 +63,7 @@ public class ProductController {
     public String editProduct(@PathVariable Long id, Model model) {
         Optional<Product> product = Optional.ofNullable(productService.findById(id));
         product.ifPresent(p -> model.addAttribute("product", p));
-        model.addAttribute("categories", categoryService.findAll()); // For the category dropdown in edit form
+        model.addAttribute("categories", categoryService.findAll());
         return product.map(p -> "products/edit").orElse("redirect:/products");
     }
 
