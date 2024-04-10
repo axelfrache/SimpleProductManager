@@ -6,73 +6,59 @@
 </head>
 <body class="container mt-5">
 <h1>Edit Order</h1>
-<form th:action="@{/orders}" th:object="${command}" method="post">
+<form th:action="@{/orders/{id}(id=${command.id})}" th:object="${command}" method="post">
     <input type="hidden" th:field="*{id}">
     <div class="mb-3">
         <label for="client" class="form-label">Client:</label>
-        <select id="client" name="clientId" class="form-select" required>
+        <select id="client" name="clientId" class="form-select" required th:value="${command.client.id}">
             <option value="">Select a client...</option>
-            <option th:each="client : ${clients}" th:value="${client.id}" th:text="${client.firstName + ' ' + client.lastName}"></option>
+            <option th:each="client : ${clients}" th:value="${client.id}" th:text="${client.firstName + ' ' + client.lastName}" th:selected="${client.id == command.client.id}"></option>
         </select>
     </div>
     <div id="productsSection" class="mb-3">
         <label for="products" class="form-label">Products and Quantities:</label>
         <div id="productRows">
-            <th:block th:each="commandProduct : ${command.commandProducts}">
-                <div class="row mb-2">
-                    <div class="col">
-                        <select name="products[]" class="form-select" required>
-                            <option th:selected="${commandProduct.product.id == option.id}"
-                                    th:each="option : ${productsOptions}"
-                                    th:value="${option.id}"
-                                    th:text="${option.name}"></option>
-                        </select>
-                    </div>
-                    <div class="col">
-                        <input type="number" name="quantities[]" min="1" class="form-control"
-                               th:value="${commandProduct.quantity}" required/>
-                    </div>
-                    <div class="col">
-                        <button type="button" class="btn btn-danger" onclick="removeProductRow(this)">Remove</button>
-                    </div>
-                </div>
-            </th:block>
+            <!-- Les lignes des produits seront ajoutées par JavaScript -->
         </div>
         <template id="productRowFragment">
         </template>
-        <button type="button" class="btn btn-success" th:unless="${command.id != null}" onclick="addProductRow()">Add Product</button>
+        <button type="button" class="btn btn-success" onclick="addProductRow()">Add Product</button>
     </div>
 
-    <template id="productRowFragment">
-    </template>
     <button type="submit" class="btn btn-primary">Save</button>
     <a href="/orders" class="btn btn-secondary">Cancel</a>
 </form>
 
 <script th:inline="javascript">
+    /* Les options de produits sont récupérées de la même manière que dans new.html */
     var productsOptions = JSON.parse(/*[[${productOptions}]]*/ '{}');
+    /* Produits existants dans la commande */
+    var existingProducts = JSON.parse(/*[[${existingProducts}]]*/ '[]');
 
     window.onload = function() {
-        var addProductButton = document.getElementById('productsSection').querySelector('button.btn-success');
-        if (addProductButton) {
-            addProductButton.addEventListener('click', addProductRow); // Add event listener if button exists
+        if (existingProducts.length > 0) {
+            existingProducts.forEach(function(productInfo) {
+                addProductRow(productInfo.productId, productInfo.quantity);
+            });
+        } else {
+            addProductRow(); // Ajoute une ligne vide si aucune produit existant
         }
     };
 
-    function addProductRow() {
+    function addProductRow(productId = "", quantity = 1) {
         var div = document.createElement('div');
         div.className = 'row mb-2';
-        var selectHTML = '<select name="products[]" class="form-select">';
-        Object.entries(productsOptions).forEach(([id, name]) => {
-            selectHTML += `<option value="${id}">${name}</option>`;
-        });
+        var selectHTML = '<select name="products[]" class="form-select" required><option value="">Select a product...</option>';
+        for (const [id, name] of Object.entries(productsOptions)) {
+            selectHTML += `<option value="${id}" ${id == productId ? 'selected' : ''}>${name}</option>`;
+        }
         selectHTML += '</select>';
         div.innerHTML = `
             <div class="col">
                 ${selectHTML}
             </div>
             <div class="col">
-                <input type="number" name="quantities[]" min="1" value="1" class="form-control"/>
+                <input type="number" name="quantities[]" min="1" value="${quantity}" class="form-control" required/>
             </div>
             <div class="col">
                 <button type="button" class="btn btn-danger" onclick="removeProductRow(this)">Remove</button>

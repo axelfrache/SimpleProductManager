@@ -1,5 +1,6 @@
 package io.github.axelfrache.productmanager.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.axelfrache.productmanager.model.Client;
 import io.github.axelfrache.productmanager.model.Command;
 import io.github.axelfrache.productmanager.model.CommandProduct;
@@ -15,7 +16,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.HashMap;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 @Controller
 @RequestMapping("/orders")
@@ -43,7 +48,7 @@ public class CommandController {
         model.addAttribute("command", new Command());
         model.addAttribute("clients", clientService.findAll());
         prepareProductOptions(model);
-        return "orders/form";
+        return "orders/new";
     }
 
     @GetMapping("/{id}/edit")
@@ -53,7 +58,26 @@ public class CommandController {
             model.addAttribute("command", command);
             model.addAttribute("clients", clientService.findAll());
             prepareProductOptions(model);
-            return "orders/form";
+
+            List<Map<String, Object>> productInfos = command.getCommandProducts().stream()
+                    .map(cp -> {
+                        Map<String, Object> info = new HashMap<>();
+                        info.put("productId", cp.getProduct().getId());
+                        info.put("quantity", cp.getQuantity());
+                        return info;
+                    })
+                    .collect(Collectors.toList());
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String existingProductsJson = "[]";
+            try {
+                existingProductsJson = objectMapper.writeValueAsString(productInfos);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            model.addAttribute("existingProducts", existingProductsJson);
+
+            return "orders/edit";
         } else {
             return "redirect:/orders";
         }
@@ -67,14 +91,12 @@ public class CommandController {
                             RedirectAttributes redirectAttributes) {
 
         if (productIds.size() != quantities.size()) {
-            // Error: The number of products does not match the number of quantities
             redirectAttributes.addFlashAttribute("error", "The number of products does not match the number of quantities.");
             return "redirect:/orders/new";
         }
 
         Client client = clientService.findById(clientId);
         if (client == null) {
-            // Error: The client ID is not valid
             redirectAttributes.addFlashAttribute("error", "The client ID is not valid.");
             return "redirect:/orders/new";
         }
@@ -86,11 +108,14 @@ public class CommandController {
             Long productId = productIds.get(i);
             Product product = productService.findById(productId);
             if (product == null) {
-                // Error: One of the product IDs is not valid
                 redirectAttributes.addFlashAttribute("error", "One of the product IDs is not valid.");
                 return "redirect:/orders/new";
             }
             Integer quantity = quantities.get(i);
+            if (quantity <= 0) {
+                redirectAttributes.addFlashAttribute("error", "Quantity must be positive.");
+                return "redirect:/orders/new";
+            }
 
             CommandProduct commandProduct = new CommandProduct();
             commandProduct.setCommand(command);
@@ -102,17 +127,50 @@ public class CommandController {
 
         command.setCommandProducts(commandProducts);
         orderService.save(command);
+
+        redirectAttributes.addFlashAttribute("success", "Order created successfully.");
         return "redirect:/orders";
     }
-
-
 
     @PostMapping("/{id}")
-    public String updateOrder(@PathVariable Long id, @ModelAttribute Command command) {
-        command.setId(id);
-        orderService.update(command);
+    public String updateOrder(@PathVariable Long id,
+                              @RequestParam("clientId") Long clientId,
+                              @RequestParam("products[]") List<Long> productIds,
+                              @RequestParam("quantities[]") List<Integer> quantities,
+                              RedirectAttributes redirectAttributes) {
+        Command commandToUpdate = orderService.findById(id);
+        if (commandToUpdate == null) {
+            redirectAttributes.addFlashAttribute("error", "Command not found.");
+            return "redirect:/orders";
+        }
+
+        Client client = clientService.findById(clientId);
+        if (client == null) {
+            redirectAttributes.addFlashAttribute("error", "Client not found.");
+            return "redirect:/orders";
+        }
+        commandToUpdate.setClient(client);
+
+        List<CommandProduct> newCommandProducts = new ArrayList<>();
+        for (int i = 0; i < productIds.size(); i++) {
+            Long productId = productIds.get(i);
+            Integer quantity = quantities.get(i);
+
+            Product product = productService.findById(productId);
+            if (product != null && quantity > 0) {
+                CommandProduct commandProduct = new CommandProduct();
+                commandProduct.setProduct(product);
+                commandProduct.setQuantity(quantity);
+                newCommandProducts.add(commandProduct);
+            }
+        }
+        orderService.updateCommandProducts(commandToUpdate, newCommandProducts);
+
+        redirectAttributes.addFlashAttribute("success", "Order updated successfully.");
         return "redirect:/orders";
     }
+
+
 
     @PostMapping("/{id}/delete")
     public String deleteOrder(@PathVariable Long id) {

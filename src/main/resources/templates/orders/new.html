@@ -18,22 +18,7 @@
     <div id="productsSection" class="mb-3">
         <label for="products" class="form-label">Products and Quantities:</label>
         <div id="productRows">
-            <div class="row mb-2">
-                <div class="col">
-                    <select name="products[]" class="form-select" required>
-                        <option value="">Select a product...</option>
-                        <option th:each="productOption : ${productsOptions}"
-                                th:value="${productOption.id}"
-                                th:text="${productOption.name}"></option>
-                    </select>
-                </div>
-                <div class="col">
-                    <input type="number" name="quantities[]" min="1" value="1" class="form-control" required/>
-                </div>
-                <div class="col">
-                    <button type="button" class="btn btn-danger" onclick="removeProductRow(this)">Remove</button>
-                </div>
-            </div>
+
         </div>
         <template id="productRowFragment">
         </template>
@@ -50,23 +35,23 @@
     var productsOptions = JSON.parse(/*[[${productOptions}]]*/ '{}');
 
     window.onload = function() {
-        addProductRow(); // Add initial product row on page load
+        addProductRow();
     };
 
     function addProductRow() {
         var div = document.createElement('div');
         div.className = 'row mb-2';
-        var selectHTML = '<select name="products[]" class="form-select">';
-        Object.entries(productsOptions).forEach(([id, name]) => {
+        var selectHTML = '<select name="products[]" class="form-select" required><option value="">Select a product...</option>';
+        for (const [id, name] of Object.entries(productsOptions)) {
             selectHTML += `<option value="${id}">${name}</option>`;
-        });
+        }
         selectHTML += '</select>';
         div.innerHTML = `
             <div class="col">
                 ${selectHTML}
             </div>
             <div class="col">
-                <input type="number" name="quantities[]" min="1" value="1" class="form-control"/>
+                <input type="number" name="quantities[]" min="1" value="1" class="form-control" required/>
             </div>
             <div class="col">
                 <button type="button" class="btn btn-danger" onclick="removeProductRow(this)">Remove</button>
