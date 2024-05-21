@@ -1,0 +1,15 @@
+/* src/main/resources/static/css/custom.css */
+
+:root {
+    --bs-primary: #153448; /* Nouvelle couleur primaire */
+}
+
+.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.btn-primary:hover {
+    background-color: darken(var(--bs-primary), 10%);
+    border-color: darken(var(--bs-primary), 10%);
+}
